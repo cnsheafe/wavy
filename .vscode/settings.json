@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "wlr_renderer.h": "c",
+    "backend.h": "c",
+    "wayland-client.h": "c",
+    "wayland-client-core.h": "c",
+    "wayland-client-protocol.h": "c",
+    "time.h": "c",
+    "shm.h": "c"
+  }
+}
