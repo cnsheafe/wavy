@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/wlr/**",
                 "/usr/include/pixman-1/**",
                 "/usr/include"
             ],
