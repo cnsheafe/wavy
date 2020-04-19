@@ -35,8 +35,9 @@ registry_handle_global(
 				registry, name, &wl_shm_interface, version);
 	}
 
-	printf("The client_data.foo: %d\n", state->foo);
-	state->foo += 1;
+	/* An example of how client state can be updated */
+	// printf("The client_data.foo: %d\n", state->foo);
+	// state->foo += 1;
 	printf("interface: '%s', version: %d, name: %d\n",
 				 interface, version, name);
 }
@@ -54,23 +55,26 @@ static const struct wl_registry_listener
 				.global_remove = registry_handle_global_remove,
 };
 
-void create_shm_pool(struct client_state *state, struct wl_shm *wl_shm) {
+int create_shm_pool(struct client_state *state)
+{
 	const long int width = 1920;
 	const long int height = 1080;
 	const long int stride = width * 4;
 
 	const long int shm_pool_size = height * width * stride;
 	const int fd = allocate_shm_file(shm_pool_size);
-	if (fd < 0) {
+	if (fd < 0)
+	{
 		printf("Invalid file descriptor\n");
-		return NULL;
+		return -1;
 	}
 
 	uint8_t *pool_data = mmap(
 			NULL, shm_pool_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-
+	struct wl_shm *wl_shm = state->shm;
 	struct wl_shm_pool *pool = wl_shm_create_pool(wl_shm, fd, shm_pool_size);
+
 	int index = 0;
 	int offset = height * stride * index;
 	struct wl_buffer *buffer = wl_shm_pool_create_buffer(
@@ -81,6 +85,7 @@ void create_shm_pool(struct client_state *state, struct wl_shm *wl_shm) {
 
 	state->wl_buffer = buffer;
 	printf("Buffer formatted\n");
+	return 1;
 }
 
 void format_buffer(
@@ -95,19 +100,34 @@ static const struct wl_shm_listener
 
 int main(int argc, char *argv[])
 {
-	struct client_state data;
-	data.foo = 10;
+	struct client_state state;
+	state.foo = 10;
 
 	struct wl_display *display = wl_display_connect(NULL);
 	struct wl_registry *registry = wl_display_get_registry(display);
+	wl_registry_add_listener(registry, &registry_listener, &state);
 
-	wl_registry_add_listener(registry, &registry_listener, &data);
+	// Will prompt server to send back event for registry.global
 	wl_display_roundtrip(display);
-	wl_shm_add_listener(data.shm, &shm_listener, &data);
-	assert(data.shm);
-	create_shm_pool(&data, data.shm);
-	while(1) {
 
+	// Setup shm
+	wl_shm_add_listener(state.shm, &shm_listener, &state);
+	assert(state.shm);
+	int status = create_shm_pool(&state);
+	if (status < 0)
+	{
+		printf("Failed to create shm_pool\n");
+		return 1;
+	}
+
+	struct wl_surface *surface = wl_compositor_create_surface(state.compositor);
+	wl_surface_attach(surface, state.wl_buffer, 0, 0);
+	wl_surface_damage(surface, 0 , 0, UINT32_MAX, UINT32_MAX);
+	wl_surface_commit(surface);
+
+
+	while (1)
+	{
 	}
 	wl_display_disconnect(display);
 
