@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wayland-client.h>
-#include "shm.h"
+#include "lib/shm.h"
 
 struct client_state
 {
