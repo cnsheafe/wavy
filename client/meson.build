@@ -15,7 +15,7 @@ add_project_arguments('-DWL_HIDE_DEPRECATED', language: 'c')
 pixman          = dependency('pixman-1')
 wayland_client  = dependency('wayland-client')
 
-executable('wl', ['main.c', 'lib/shm.c'],
+executable('wl', ['main.c', '../lib/shm.c'],
 dependencies: [
   pixman,
   wayland_client,

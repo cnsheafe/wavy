@@ -15,7 +15,7 @@ add_project_arguments('-DWL_HIDE_DEPRECATED', language: 'c')
 pixman          = dependency('pixman-1')
 wayland_server  = dependency('wayland-server')
 
-executable('wl', 'main.c',
+executable('wl', ['main.c', '../lib/xdg-shell-protocol.c'],
 dependencies: [
   pixman,
   wayland_server,

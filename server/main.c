@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <wayland-server.h>
+#include "../lib/xdg-shell-server-protocol.h"
 
 struct wl_server
 {
@@ -9,6 +10,7 @@ struct wl_server
   struct wl_compositor *compositor;
   struct wl_output *wl_output;
   struct wl_shm *wl_shm;
+  struct xdg_wm_base *xdg_wm_base;
 };
 
 void create_registry_resource(
@@ -30,11 +32,11 @@ void create_compositor_resource(
 }
 
 void create_shm_resource(
-  struct wl_client *client,
-  void *data,
-  uint32_t version,
-  uint32_t id
-) {
+    struct wl_client *client,
+    void *data,
+    uint32_t version,
+    uint32_t id)
+{
   wl_resource_create(client, &wl_shm_interface, version, id);
 }
 
@@ -71,6 +73,15 @@ void create_output_resource(
 
   wl_resource_set_implementation(
       resource, &wl_output_implementation, &dummy_data, destroy_output_resource);
+}
+
+void create_xdg_wm_base_resource(
+    struct wl_client *client,
+    void *data,
+    uint32_t version,
+    uint32_t id)
+{
+  wl_resource_create(client, &xdg_wm_base_interface, version, id);
 }
 
 int main(int argc, char const *argv[])
@@ -116,14 +127,20 @@ int main(int argc, char const *argv[])
       &server->wl_output,
       create_output_resource);
 
-
   // Adds the global shared-memory to the display
   wl_global_create(
-    server->wl_display,
-    &wl_shm_interface,
-    wl_shm_interface.version,
-    &server->wl_shm,
-    create_shm_resource);
+      server->wl_display,
+      &wl_shm_interface,
+      wl_shm_interface.version,
+      &server->wl_shm,
+      create_shm_resource);
+
+  wl_global_create(
+      server->wl_display,
+      &xdg_wm_base_interface,
+      xdg_wm_base_interface.version,
+      &server->xdg_wm_base,
+      create_xdg_wm_base_resource);
 
   wl_display_init_shm(server->wl_display);
   wl_display_add_shm_format(server->wl_display, WL_SHM_FORMAT_ARGB8888);

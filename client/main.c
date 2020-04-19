@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wayland-client.h>
-#include "lib/shm.h"
+#include "../lib/shm.h"
+#include "../lib/xdg-shell-client-protocol.h"
 
 struct client_state
 {
