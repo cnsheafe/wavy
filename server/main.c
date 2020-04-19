@@ -8,6 +8,7 @@ struct wl_server
   struct wl_registry *registry;
   struct wl_compositor *compositor;
   struct wl_output *wl_output;
+  struct wl_shm *wl_shm;
 };
 
 void create_registry_resource(
@@ -28,8 +29,23 @@ void create_compositor_resource(
   wl_resource_create(client, &wl_compositor_interface, version, id);
 }
 
+void create_shm_resource(
+  struct wl_client *client,
+  void *data,
+  uint32_t version,
+  uint32_t id
+) {
+  wl_resource_create(client, &wl_shm_interface, version, id);
+}
+
 void destroy_output_resource(struct wl_resource *resource)
 {
+  // get user data
+  int *dummy_data = wl_resource_get_user_data(resource);
+  printf("Dummy data is %d\n", *dummy_data);
+
+  *dummy_data = 0;
+  printf("Dummy data being changed to %d\n", *dummy_data);
 }
 
 void release_output(struct wl_client *client, struct wl_resource *resource)
@@ -48,10 +64,13 @@ void create_output_resource(
     uint32_t id)
 {
   // Is seen by client via destroy_listener
-  bool dummy_data = 1;
+  int dummy_data = 1;
 
-  struct wl_resource *resource = wl_resource_create(client, &wl_output_interface, version, id);
-  wl_resource_set_implementation(resource, &wl_output_interface, &dummy_data, destroy_output_resource);
+  struct wl_resource *resource = wl_resource_create(
+      client, &wl_output_interface, version, id);
+
+  wl_resource_set_implementation(
+      resource, &wl_output_interface, &dummy_data, destroy_output_resource);
 }
 
 int main(int argc, char const *argv[])
@@ -89,12 +108,22 @@ int main(int argc, char const *argv[])
       &server->compositor,
       create_compositor_resource);
 
+  //  Adds the global output to the display
   wl_global_create(
       server->wl_display,
       &wl_output_interface,
       wl_output_interface.version,
       &server->wl_output,
       create_output_resource);
+
+
+  // Adds the global shared-memory to the display
+  wl_global_create(
+    server->wl_display,
+    &wl_shm_interface,
+    wl_shm_interface.version,
+    &server->wl_shm,
+    create_shm_resource);
 
   printf("Running Wayland display on %s\n", socket);
 
