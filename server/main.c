@@ -70,7 +70,7 @@ void create_output_resource(
       client, &wl_output_interface, version, id);
 
   wl_resource_set_implementation(
-      resource, &wl_output_interface, &dummy_data, destroy_output_resource);
+      resource, &wl_output_implementation, &dummy_data, destroy_output_resource);
 }
 
 int main(int argc, char const *argv[])
@@ -124,6 +124,9 @@ int main(int argc, char const *argv[])
     wl_shm_interface.version,
     &server->wl_shm,
     create_shm_resource);
+
+  wl_display_init_shm(server->wl_display);
+  wl_display_add_shm_format(server->wl_display, WL_SHM_FORMAT_ARGB8888);
 
   printf("Running Wayland display on %s\n", socket);
 

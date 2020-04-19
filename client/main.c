@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,30 +54,39 @@ static const struct wl_registry_listener
 				.global_remove = registry_handle_global_remove,
 };
 
-void format_buffer(
-		void *data, struct wl_shm *wl_shm, uint32_t format)
-{
-	const int width = 1920;
-	const int height = 1080;
-	const int stride = width * 4;
+void create_shm_pool(struct client_state *state, struct wl_shm *wl_shm) {
+	const long int width = 1920;
+	const long int height = 1080;
+	const long int stride = width * 4;
 
-	const int shm_pool_size = height * width * stride;
+	const long int shm_pool_size = height * width * stride;
 	const int fd = allocate_shm_file(shm_pool_size);
+	if (fd < 0) {
+		printf("Invalid file descriptor\n");
+		return NULL;
+	}
 
 	uint8_t *pool_data = mmap(
 			NULL, shm_pool_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
 
 	struct wl_shm_pool *pool = wl_shm_create_pool(wl_shm, fd, shm_pool_size);
 	int index = 0;
 	int offset = height * stride * index;
 	struct wl_buffer *buffer = wl_shm_pool_create_buffer(
-			pool, offset, width, height, stride, format);
+			pool, offset, width, height, stride, WL_SHM_FORMAT_ARGB8888);
 
 	uint32_t *pixels = (uint32_t *)&pool_data[offset];
 	memset(pixels, 0, stride * height);
 
-	struct client_state *state = data;
 	state->wl_buffer = buffer;
+	printf("Buffer formatted\n");
+}
+
+void format_buffer(
+		void *data, struct wl_shm *wl_shm, uint32_t format)
+{
+	printf("Format event recieved\n");
 }
 static const struct wl_shm_listener
 		shm_listener = {
@@ -94,6 +104,11 @@ int main(int argc, char *argv[])
 	wl_registry_add_listener(registry, &registry_listener, &data);
 	wl_display_roundtrip(display);
 	wl_shm_add_listener(data.shm, &shm_listener, &data);
+	assert(data.shm);
+	create_shm_pool(&data, data.shm);
+	while(1) {
+
+	}
 	wl_display_disconnect(display);
 
 	return 0;
