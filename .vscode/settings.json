@@ -5,6 +5,8 @@
     "wayland-client-core.h": "c",
     "wayland-client-protocol.h": "c",
     "time.h": "c",
-    "shm.h": "c"
+    "shm.h": "c",
+    "string.h": "c",
+    "mman.h": "c"
   }
 }
