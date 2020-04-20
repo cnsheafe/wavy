@@ -15,7 +15,13 @@ add_project_arguments('-DWL_HIDE_DEPRECATED', language: 'c')
 pixman          = dependency('pixman-1')
 wayland_client  = dependency('wayland-client')
 
-executable('wl', ['main.c', '../lib/shm.c'],
+executable('wl', [
+  'main.c',
+  'registry.c',
+  'xdg.c',
+  '../lib/shm.c',
+  '../lib/xdg-shell-protocol.c',
+],
 dependencies: [
   pixman,
   wayland_client,

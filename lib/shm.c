@@ -4,9 +4,13 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include "string.h"
 #include <time.h>
 #include <unistd.h>
+#include "../client/state.h"
+#include "xdg-shell-client-protocol.h"
 
 void randname(char *buf)
 {
